@@ -1,0 +1,21 @@
+{
+  "short_name": "مساعد الذاكرة",
+  "name": "مساعد الذاكرة بالذكاء الاصطناعي",
+  "description": "تطبيق دردشة يتيح للمستخدمين حفظ واسترجاع المعلومات الشخصية.",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon-512x512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#111827",
+  "background_color": "#111827"
+}
