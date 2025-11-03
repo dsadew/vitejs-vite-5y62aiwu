@@ -11,11 +11,6 @@
 
 import { GoogleGenAI, FunctionDeclaration, Type, Content } from "@google/genai";
 
-// بإضافة هذا السطر، نخبر Vercel بتشغيل هذه الدالة على شبكة Edge الخاصة بها.
-// هذا يضمن أن كائن `request` هو كائن Request قياسي لواجهة برمجة تطبيقات الويب،
-// والذي يحتوي على دالة `.json()` التي نحتاجها.
-export const runtime = 'edge';
-
 const functionDeclarations: FunctionDeclaration[] = [
   {
     name: 'saveUserData',
@@ -50,13 +45,12 @@ const systemInstruction = `أنت مساعد ذكاء اصطناعي ودود و
 مثال: إذا قال المستخدم "احفظ أن لوني المفضل هو الأزرق"، يجب أن تستدعي saveUserData({key: "favoriteColor", value: "الأزرق"}).
 مثال: إذا قال المستخدم "ما هو لوني المفضل؟"، يجب أن تستدعي getUserData({key: "favoriteColor"}).`;
 
-// For Vercel, you export a default function like this.
-export default async function handler(request: Request): Promise<Response> {
-  if (request.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { 
-      status: 405, 
-      headers: { 'Content-Type': 'application/json' } 
-    });
+// تم تغيير الدالة لتتوافق مع بيئة تشغيل Vercel Node.js.
+// `req` هو الطلب الوارد، و `res` هو كائن الاستجابة لإرساله مرة أخرى إلى العميل.
+export default async function handler(req: any, res: any) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
@@ -67,8 +61,8 @@ export default async function handler(request: Request): Promise<Response> {
     
     const ai = new GoogleGenAI({ apiKey });
 
-    const body = await request.json();
-    const { history, newMessage, functionResponses } = body;
+    // في بيئة Node.js، يتم تحليل جسم الطلب (JSON) تلقائيًا ويكون متاحًا في `req.body`.
+    const { history, newMessage, functionResponses } = req.body;
 
     const contents: Content[] = [...history];
     if (newMessage) {
@@ -87,23 +81,20 @@ export default async function handler(request: Request): Promise<Response> {
       }
     });
 
-    // Return a simplified, serializable object to the client
+    // إعداد استجابة مبسطة لإرسالها إلى العميل.
     const clientResponse = {
         text: result.text,
         functionCalls: result.functionCalls
     };
 
-    return new Response(JSON.stringify(clientResponse), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    // استخدام كائن `res` لإرسال الاستجابة بنجاح.
+    return res.status(200).json(clientResponse);
 
   } catch (error) {
     console.error("خطأ في دالة الخادم الوكيل لـ Gemini:", error);
     const errorMessage = error instanceof Error ? error.message : 'حدث خطأ غير معروف.';
-    return new Response(JSON.stringify({ error: 'فشل الاتصال بنموذج الذكاء الاصطناعي.', details: errorMessage }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    
+    // استخدام كائن `res` لإرسال استجابة الخطأ.
+    return res.status(500).json({ error: 'فشل الاتصال بنموذج الذكاء الاصطناعي.', details: errorMessage });
   }
 }
