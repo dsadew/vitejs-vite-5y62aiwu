@@ -35,12 +35,21 @@ const functionDeclarations: FunctionDeclaration[] = [
       required: ['key'],
     },
   },
+  {
+    name: 'getAllUserData',
+    description: 'تسترجع جميع المعلومات المحفوظة للمستخدم ككائن واحد.',
+    parameters: {
+        type: Type.OBJECT,
+        properties: {},
+    },
+  },
 ];
 
 const systemInstruction = `أنت مساعد ذكاء اصطناعي ودود ومفيد، ومهمتك هي مساعدة المستخدمين على تذكر الأشياء. 
 تتحدث اللغة العربية بطلاقة. 
 عندما يطلب منك المستخدم حفظ معلومة، استخدم دالة 'saveUserData'. 
 عندما يسألك المستخدم عن معلومة، استخدم دالة 'getUserData'.
+عندما تحتاج إلى نظرة عامة على جميع المعلومات المحفوظة، استخدم 'getAllUserData'.
 بعد تنفيذ الدالة، قم بالرد على المستخدم بلغة طبيعية لتأكيد الإجراء أو تقديم المعلومة.
 مثال: إذا قال المستخدم "احفظ أن لوني المفضل هو الأزرق"، يجب أن تستدعي saveUserData({key: "favoriteColor", value: "الأزرق"}).
 مثال: إذا قال المستخدم "ما هو لوني المفضل؟"، يجب أن تستدعي getUserData({key: "favoriteColor"}).`;
