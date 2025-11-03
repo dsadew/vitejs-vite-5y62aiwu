@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { Message, ChatHistory, UserData } from './types';
 import ChatMessage from './components/ChatMessage';
@@ -136,12 +135,16 @@ const App: React.FC = () => {
       const functionCalls = geminiResponse.functionCalls;
 
       let modelResponseText: string;
-      let newHistory: ChatHistory = [
-          ...currentHistory,
-          // Do not add the system's initial hidden prompt to history
-          // Fix: Cast the new user message object to 'Content' to prevent TypeScript from widening the 'role' property to 'string'.
-          ...(prompt !== INITIAL_PROMPT ? [{ role: 'user', parts: [{ text: prompt }] } as Content] : [])
-      ];
+      
+      // *** FIX START ***
+      // Correctly build the history for the next API call.
+      // The prompt (whether initial or user-sent) must be included as a 'user' turn
+      // to maintain the correct conversation structure for the API.
+      let newHistory: ChatHistory = [...currentHistory];
+      if (prompt) {
+          newHistory.push({ role: 'user', parts: [{ text: prompt }] } as Content);
+      }
+      // *** FIX END ***
 
       if (functionCalls && functionCalls.length > 0) {
         const call = functionCalls[0];
