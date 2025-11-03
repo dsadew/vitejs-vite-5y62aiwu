@@ -1,5 +1,3 @@
-
-
 /**
  * !!! معلومات هامة جداً !!!
  * 
@@ -12,6 +10,11 @@
  */
 
 import { GoogleGenAI, FunctionDeclaration, Type, Content } from "@google/genai";
+
+// بإضافة هذا السطر، نخبر Vercel بتشغيل هذه الدالة على شبكة Edge الخاصة بها.
+// هذا يضمن أن كائن `request` هو كائن Request قياسي لواجهة برمجة تطبيقات الويب،
+// والذي يحتوي على دالة `.json()` التي نحتاجها.
+export const runtime = 'edge';
 
 const functionDeclarations: FunctionDeclaration[] = [
   {
