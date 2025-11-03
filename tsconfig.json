@@ -27,6 +27,7 @@
     "types.ts",
     "services/**/*.ts",
     "utils/**/*.ts",
-    "components/**/*.tsx"
+    "components/**/*.tsx",
+    "components/icons/*.tsx"
   ]
 }
