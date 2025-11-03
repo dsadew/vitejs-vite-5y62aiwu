@@ -1,11 +1,6 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  lazy,
-  Suspense,
-} from 'react';
+
+
+import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { Message, ChatHistory, UserData } from './types';
 import ChatMessage from './components/ChatMessage';
 import ChatInput from './components/ChatInput';
@@ -43,7 +38,7 @@ const App: React.FC = () => {
   // Usage Limit State
   const [dailyUsage, setDailyUsage] = useState<number>(0);
   const [limitReached, setLimitReached] = useState<boolean>(false);
-
+  
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Check for PIN on initial load
@@ -55,8 +50,7 @@ const App: React.FC = () => {
   // Scroll to bottom of chat when messages update
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
@@ -69,35 +63,29 @@ const App: React.FC = () => {
       const today = new Date().toISOString().split('T')[0];
 
       if (storedUsage) {
-        const usageData = JSON.parse(storedUsage);
-        if (usageData.date === today) {
-          const currentCount = usageData.count || 0;
-          setDailyUsage(currentCount);
-          if (currentCount >= DAILY_MESSAGE_LIMIT) {
-            setLimitReached(true);
+          const usageData = JSON.parse(storedUsage);
+          if (usageData.date === today) {
+              const currentCount = usageData.count || 0;
+              setDailyUsage(currentCount);
+              if (currentCount >= DAILY_MESSAGE_LIMIT) {
+                  setLimitReached(true);
+              }
+          } else {
+              localStorage.setItem('gemini-daily-usage', JSON.stringify({ count: 0, date: today }));
+              setDailyUsage(0);
           }
-        } else {
-          localStorage.setItem(
-            'gemini-daily-usage',
-            JSON.stringify({ count: 0, date: today })
-          );
-          setDailyUsage(0);
-        }
       } else {
-        localStorage.setItem(
-          'gemini-daily-usage',
-          JSON.stringify({ count: 0, date: today })
-        );
+          localStorage.setItem('gemini-daily-usage', JSON.stringify({ count: 0, date: today }));
       }
     } catch (error) {
-      console.error('Failed to process daily usage from localStorage', error);
+      console.error("Failed to process daily usage from localStorage", error);
     }
 
     setMessages([
       {
         role: 'model',
-        content: 'مرحباً! أنا مساعدك الشخصي. كيف يمكنني مساعدتك اليوم؟',
-      },
+        content: 'مرحباً! أنا مساعدك الشخصي. كيف يمكنني مساعدتك اليوم؟'
+      }
     ]);
   };
 
@@ -121,18 +109,13 @@ const App: React.FC = () => {
       setSessionPin(pin);
       const encryptedData = localStorage.getItem(USER_DATA_KEY);
       if (encryptedData) {
-        const decryptedData = decryptData(
-          encryptedData,
-          pin
-        ) as UserData | null;
+        const decryptedData = decryptData(encryptedData, pin) as UserData | null;
         if (decryptedData) {
           setIsAuthenticated(true);
           setAuthError(null);
           initializeChat(decryptedData);
         } else {
-          setAuthError(
-            'فشل فك تشفير البيانات. قد يكون رمز PIN خاطئًا أو البيانات تالفة.'
-          );
+          setAuthError("فشل فك تشفير البيانات. قد يكون رمز PIN خاطئًا أو البيانات تالفة.");
           setTimeout(() => setAuthError(null), 3000);
         }
       } else {
@@ -141,7 +124,7 @@ const App: React.FC = () => {
         initializeChat({});
       }
     } else {
-      setAuthError('رمز PIN غير صحيح. حاول مرة أخرى.');
+      setAuthError("رمز PIN غير صحيح. حاول مرة أخرى.");
       setTimeout(() => setAuthError(null), 3000);
     }
   };
@@ -157,145 +140,112 @@ const App: React.FC = () => {
     setAuthError(null);
   };
 
-  const saveUserData = useCallback(
-    (key: string, value: string): string => {
-      if (!sessionPin) return 'خطأ: جلسة غير مصادق عليها.';
-      if (Object.keys(userData).length >= 10 && !userData[key]) {
+  const saveUserData = useCallback((key: string, value: string): string => {
+    if (!sessionPin) return "خطأ: جلسة غير مصادق عليها.";
+    if (Object.keys(userData).length >= 10 && !userData[key]) {
         return 'عذراً، الذاكرة ممتلئة. لا يمكن حفظ أكثر من 10 معلومات. يرجى حذف معلومة قديمة أولاً.';
-      }
-      const updatedUserData = { ...userData, [key]: value };
-      setUserData(updatedUserData);
-      const encryptedData = encryptData(updatedUserData, sessionPin);
-      localStorage.setItem(USER_DATA_KEY, encryptedData);
-      return `تم حفظ المعلومة بنجاح: ${key}`;
-    },
-    [userData, sessionPin]
-  );
+    }
+    const updatedUserData = { ...userData, [key]: value };
+    setUserData(updatedUserData);
+    const encryptedData = encryptData(updatedUserData, sessionPin);
+    localStorage.setItem(USER_DATA_KEY, encryptedData);
+    return `تم حفظ المعلومة بنجاح: ${key}`;
+  }, [userData, sessionPin]);
 
-  const deleteUserData = useCallback(
-    (keyToDelete: string) => {
-      if (!sessionPin) return;
-      const updatedUserData = { ...userData };
-      delete updatedUserData[keyToDelete];
-      setUserData(updatedUserData);
-      const encryptedData = encryptData(updatedUserData, sessionPin);
-      localStorage.setItem(USER_DATA_KEY, encryptedData);
-    },
-    [sessionPin, userData]
-  );
+  const deleteUserData = useCallback((keyToDelete: string) => {
+    if (!sessionPin) return;
+    const updatedUserData = { ...userData };
+    delete updatedUserData[keyToDelete];
+    setUserData(updatedUserData);
+    const encryptedData = encryptData(updatedUserData, sessionPin);
+    localStorage.setItem(USER_DATA_KEY, encryptedData);
+  }, [sessionPin, userData]);
 
-  const getUserData = useCallback(
-    (key: string): string => {
-      const value = userData[key];
-      if (value) {
-        return `المعلومة التي وجدتها لـ ${key} هي: ${value}`;
-      }
-      return `عذراً، لم أجد أي معلومة محفوظة بالمفتاح: ${key}`;
-    },
-    [userData]
-  );
+  const getUserData = useCallback((key: string): string => {
+    const value = userData[key];
+    if (value) {
+      return `المعلومة التي وجدتها لـ ${key} هي: ${value}`;
+    }
+    return `عذراً، لم أجد أي معلومة محفوظة بالمفتاح: ${key}`;
+  }, [userData]);
 
-  const handleSendMessage = useCallback(
-    async (text: string) => {
-      if (!text.trim() || limitReached) return;
+  const handleSendMessage = useCallback(async (text: string) => {
+    if (!text.trim() || limitReached) return;
 
-      const userMessage: Message = { role: 'user', content: text };
-      setMessages((prev) => [...prev, userMessage]);
-      setIsLoading(true);
+    const userMessage: Message = { role: 'user', content: text };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
 
-      const newCount = dailyUsage + 1;
-      setDailyUsage(newCount);
-      const today = new Date().toISOString().split('T')[0];
-      localStorage.setItem(
-        'gemini-daily-usage',
-        JSON.stringify({ count: newCount, date: today })
-      );
+    const newCount = dailyUsage + 1;
+    setDailyUsage(newCount);
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.setItem('gemini-daily-usage', JSON.stringify({ count: newCount, date: today }));
 
-      if (newCount >= DAILY_MESSAGE_LIMIT) {
+     if (newCount >= DAILY_MESSAGE_LIMIT) {
         setLimitReached(true);
-      }
+    }
 
-      try {
-        const geminiResponse = await sendMessageToGemini(history, text);
-        const functionCalls = geminiResponse.functionCalls;
+    try {
+      const geminiResponse = await sendMessageToGemini(history, text);
+      const functionCalls = geminiResponse.functionCalls;
 
-        let modelResponseText: string;
-        let newHistory: ChatHistory = [
+      let modelResponseText: string;
+      let newHistory: ChatHistory = [
           ...history,
-          { role: 'user', parts: [{ text }] },
-        ];
+          { role: 'user', parts: [{ text }] }
+      ];
 
-        if (functionCalls && functionCalls.length > 0) {
-          const call = functionCalls[0];
-          let functionResult = '';
+      if (functionCalls && functionCalls.length > 0) {
+        const call = functionCalls[0];
+        let functionResult = '';
 
-          if (call.name === 'saveUserData' && call.args) {
-            functionResult = saveUserData(
-              call.args.key as string,
-              call.args.value as string
-            );
-          } else if (call.name === 'getUserData' && call.args) {
-            functionResult = getUserData(call.args.key as string);
-          }
-
-          const functionResponsePart: Part[] = [
-            {
-              functionResponse: {
-                name: call.name,
-                response: { result: functionResult },
-              },
-            },
-          ];
-
-          const functionResponseResult = await sendMessageToGemini(
-            [...newHistory, { role: 'model', parts: [{ functionCall: call }] }],
-            '',
-            functionResponsePart
-          );
-          modelResponseText = functionResponseResult.text;
-
-          newHistory.push(
-            { role: 'model', parts: [{ functionCall: call }] },
-            { role: 'function', parts: functionResponsePart }
-          );
-        } else {
-          modelResponseText = geminiResponse.text;
+        if (call.name === 'saveUserData' && call.args) {
+          functionResult = saveUserData(call.args.key as string, call.args.value as string);
+        } else if (call.name === 'getUserData' && call.args) {
+          functionResult = getUserData(call.args.key as string);
         }
 
-        const modelMessage: Message = {
-          role: 'model',
-          content: modelResponseText,
-        };
-        setMessages((prev) => [...prev, modelMessage]);
-
-        newHistory.push({
-          role: 'model',
-          parts: [{ text: modelResponseText }],
-        });
-        setHistory(newHistory);
-      } catch (error) {
-        console.error('Error communicating with Gemini:', error);
-        const errorMessage: Message = {
-          role: 'model',
-          content: 'عذراً، حدث خطأ ما. يرجى المحاولة مرة أخرى.',
-        };
-        setMessages((prev) => [...prev, errorMessage]);
-      } finally {
-        setIsLoading(false);
-        if (newCount >= DAILY_MESSAGE_LIMIT) {
-          setTimeout(() => {
-            const limitMessage: Message = {
-              role: 'model',
-              content:
-                'لقد وصلت إلى حد الاستخدام اليومي. يرجى المحاولة مرة أخرى غداً.',
-            };
-            setMessages((prev) => [...prev, limitMessage]);
-          }, 500);
-        }
+        const functionResponsePart: Part[] = [{ functionResponse: { name: call.name, response: { result: functionResult } } }];
+        
+        const functionResponseResult = await sendMessageToGemini(
+          [...newHistory, { role: 'model', parts: [{ functionCall: call }] }], 
+          '',
+          functionResponsePart
+        );
+        modelResponseText = functionResponseResult.text;
+        
+        newHistory.push(
+          { role: 'model', parts: [{ functionCall: call }] },
+          { role: 'function', parts: functionResponsePart }
+        );
+      } else {
+        modelResponseText = geminiResponse.text;
       }
-    },
-    [history, dailyUsage, limitReached, saveUserData, getUserData]
-  );
+      
+      const modelMessage: Message = { role: 'model', content: modelResponseText };
+      setMessages(prev => [...prev, modelMessage]);
+
+      newHistory.push({ role: 'model', parts: [{ text: modelResponseText }] });
+      setHistory(newHistory);
+
+    } catch (error) {
+      console.error("Error communicating with Gemini:", error);
+      const detailMessage = error instanceof Error ? error.message : 'يرجى المحاولة مرة أخرى.';
+      const errorMessage: Message = { 
+        role: 'model', 
+        content: `عذراً، حدث خطأ أثناء الاتصال بالمساعد: ${detailMessage}` 
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+      if (newCount >= DAILY_MESSAGE_LIMIT) {
+         setTimeout(() => {
+            const limitMessage: Message = { role: 'model', content: 'لقد وصلت إلى حد الاستخدام اليومي. يرجى المحاولة مرة أخرى غداً.' };
+            setMessages(prev => [...prev, limitMessage]);
+        }, 500);
+      }
+    }
+  }, [history, dailyUsage, limitReached, saveUserData, getUserData]);
 
   if (!isAuthenticated) {
     return (
@@ -314,57 +264,52 @@ const App: React.FC = () => {
         <header className="bg-gray-800 p-4 shadow-md flex items-center justify-between border-b border-gray-700">
           <div className="flex items-center">
             <BotIcon className="w-8 h-8 text-cyan-400 mr-3" />
-            <h1 className="text-xl font-bold">
-              مساعد الذاكرة بالذكاء الاصطناعي
-            </h1>
+            <h1 className="text-xl font-bold">مساعد الذاكرة بالذكاء الاصطناعي</h1>
           </div>
           <div className="flex items-center gap-2">
+             <button
+                onClick={() => setIsAboutModalOpen(true)}
+                className="p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
+                aria-label="حول التطبيق"
+              >
+                <InfoIcon className="w-6 h-6 text-cyan-400" />
+              </button>
             <button
-              onClick={() => setIsAboutModalOpen(true)}
-              className="p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
-              aria-label="حول التطبيق"
-            >
-              <InfoIcon className="w-6 h-6 text-cyan-400" />
+                onClick={() => setIsMemoryModalOpen(true)}
+                className="p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
+                aria-label="إدارة الذاكرة"
+              >
+                <BrainIcon className="w-6 h-6 text-cyan-400" />
             </button>
             <button
-              onClick={() => setIsMemoryModalOpen(true)}
-              className="p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
-              aria-label="إدارة الذاكرة"
-            >
-              <BrainIcon className="w-6 h-6 text-cyan-400" />
-            </button>
-            <button
-              onClick={handleLogout}
-              className="p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
-              aria-label="تسجيل الخروج"
-            >
-              <LogoutIcon className="w-6 h-6 text-red-400" />
+                onClick={handleLogout}
+                className="p-2 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+                aria-label="تسجيل الخروج"
+              >
+                <LogoutIcon className="w-6 h-6 text-red-400" />
             </button>
           </div>
         </header>
-        <main
-          ref={chatContainerRef}
-          className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6"
-        >
+        <main ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
           {messages.map((msg, index) => (
             <ChatMessage key={index} message={msg} />
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="flex items-center space-x-2 bg-gray-800 rounded-lg p-3 max-w-lg">
-                <BotIcon className="w-8 h-8 flex-shrink-0 text-cyan-400" />
-                <div className="flex items-center space-x-1 rtl:space-x-reverse">
-                  <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse delay-0"></span>
-                  <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse delay-150"></span>
-                  <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse delay-300"></span>
+                <div className="flex items-center space-x-2 bg-gray-800 rounded-lg p-3 max-w-lg">
+                    <BotIcon className="w-8 h-8 flex-shrink-0 text-cyan-400" />
+                    <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                        <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse delay-0"></span>
+                        <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse delay-150"></span>
+                        <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse delay-300"></span>
+                    </div>
                 </div>
-              </div>
             </div>
           )}
         </main>
         <footer className="p-4 bg-gray-900 border-t border-gray-700">
-          <ChatInput
-            onSendMessage={handleSendMessage}
+          <ChatInput 
+            onSendMessage={handleSendMessage} 
             isLoading={isLoading}
             limitReached={limitReached}
             dailyUsage={dailyUsage}
@@ -373,7 +318,7 @@ const App: React.FC = () => {
         </footer>
       </div>
       <Suspense fallback={null}>
-        <MemoryModal
+        <MemoryModal 
           isOpen={isMemoryModalOpen}
           onClose={() => setIsMemoryModalOpen(false)}
           userData={userData}
